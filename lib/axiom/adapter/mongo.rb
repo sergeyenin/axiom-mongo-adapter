@@ -17,7 +17,18 @@ module Axiom
       # @api private
       #
       attr_reader :database
-
+      # Execute relation in base
+      #
+      # @param [Relation] relation
+      #
+      # @return [undefined]
+      #
+      # @api public
+      #
+      def execute(relation)
+        Query.new(@database, relation).execute
+      end
+ 
       # Read tuples from relation
       #
       # @param [Relation] relation
@@ -62,3 +73,11 @@ require 'axiom/adapter/mongo/function'
 require 'axiom/adapter/mongo/literal'
 require 'axiom/adapter/mongo/gateway'
 require 'axiom/adapter/mongo/query'
+require 'axiom/adapter/mongo/generator'
+require 'axiom/adapter/mongo/generator/base'
+require 'axiom/adapter/mongo/generator/insertion'
+require 'axiom/adapter/mongo/generator/deletion'
+require 'axiom/adapter/mongo/generator/restriction'
+require 'axiom/adapter/mongo/generator/offset'
+require 'axiom/adapter/mongo/generator/order'
+require 'axiom/adapter/mongo/generator/limit'

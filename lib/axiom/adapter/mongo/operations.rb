@@ -19,7 +19,7 @@ module Axiom
             raise UnsupportedAlgebraError, "No support for #{klass}"
           end
 
-          [*call] + [visitable]
+          [visitable] + [*call]
         end
 
       private

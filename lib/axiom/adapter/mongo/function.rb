@@ -27,7 +27,7 @@ module Axiom
         # @api private
         #
         def self.function(function)
-          send(*FUNCTIONS.lookup(function))
+          send(*FUNCTIONS.lookup(function).reverse)
         end
 
         # Create disjunction literal

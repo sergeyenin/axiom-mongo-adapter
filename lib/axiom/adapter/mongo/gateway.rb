@@ -31,6 +31,8 @@ module Axiom
           Relation::Operation::Order,
           Relation::Operation::Offset,
           Relation::Operation::Limit,
+          Relation::Operation::Insertion,
+          Relation::Operation::Deletion,
           Algebra::Restriction
         ].each_with_object({}) do |operation, map|
           operation::Methods.public_instance_methods(false).each do |method|
@@ -38,6 +40,8 @@ module Axiom
             map[method]=operation if method != :last
           end
         end
+
+        CHANGING_METHODS = [:insert, :delete] 
 
         MAP.each_key do |method|
           class_eval(<<-RUBY, __FILE__,__LINE__+1)
@@ -47,7 +51,9 @@ module Axiom
               end
 
               response = @relation.send(:#{method}, *args,&block)
-              self.class.new(adapter, response, @operations + [response.class])
+              result = self.class.new(adapter, response, @operations + [response.class])
+              adapter.execute(response) if CHANGING_METHODS.include?(__method__)
+              result 
             end
           RUBY
         end
@@ -106,7 +112,19 @@ module Axiom
           tuples.each { |tuple| yield tuple }
           self
         end
-
+        
+        # Convert the Gateway into an Array
+        #
+        # @example
+        #   array = relation.to_ary
+        #
+        # @return [Array]
+        #
+        # @api public
+        def to_ary
+          tuples.map(&:to_ary)
+        end
+ 
       private
 
         # Return if method is supported in this gateway

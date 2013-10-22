@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'logger'
 
 # if ENV['TRAVIS'] or ENV['HAS_MONGO']
-  describe Adapter::Mongo, 'read' do
+  describe Adapter::Mongo, 'delete' do
     let(:uri)           { ENV.fetch('MONGO_URI', '127.0.0.1')                                    }
     let(:logger)        { Logger.new($stdout)                                                    }
             
@@ -25,39 +25,25 @@ require 'logger'
       collection.remove
     end
 
-    specify 'it allows to receive all records' do
-      data = relation.to_ary
-      data.should == [
+    specify 'it allows to delete single records from relation' do
+      relation_to_remove = relation.restrict{|r| r.firstname.eq('Sue')}
+      relation.delete(relation_to_remove)
+      relation.to_ary.should == [       
         [ 'John', 'Doe' ],
-        [ 'Sue', 'Doe' ],
-        [ 'Tray', 'Doe' ]
-      ]
-      # collection.skip(1)
-    end
-
-    specify 'it allows to receive specific records' do
-      data = relation.restrict { |r| r.firstname.eq('John') }.to_ary
-      data.should == [ [ 'John', 'Doe' ] ]
-    end
-
-    specify 'it allows to sort records' do
-      data = relation.sort.to_ary
-      data.should == [
-        [ 'John', 'Doe' ],
-        [ 'Sue', 'Doe' ],
         [ 'Tray', 'Doe' ]
       ]
     end
 
-    specify 'it allows to offset records' do
-      data = relation.sort.drop(2).to_ary
-      data.should == [ [ 'Tray', 'Doe' ] ]
-    end
-
-    specify 'it allows to limit records' do
-      data = relation.sort.take(1).to_ary
-      data.should == [ [ 'John', 'Doe' ] ]
-    end
+    # specify 'it allows to insert new record to existing relation' do
+    #   collection.remove
+    #   relation.insert([[ 'John', 'Doe' ],[ 'Sue', 'Doe' ]])
+    #   relation.insert([[ 'Tray', 'Doe' ]])
+    #   relation.to_ary.should == [
+    #     [ 'John', 'Doe' ],
+    #     [ 'Sue', 'Doe' ],
+    #     [ 'Tray', 'Doe' ]
+    #   ]
+    # end
 
   end
 # end

@@ -63,6 +63,7 @@ module Axiom
         # @api private
         #
         def initialize(relation)
+          relation = relation.send(:relation) if relation.is_a? Gateway 
           dispatch(relation)
           @query ||= {}
           @sort  ||= []
@@ -78,18 +79,7 @@ module Axiom
           Axiom::Algebra::Restriction                 => 'Generator::Restriction',
           Axiom::Relation::Operation::Deletion        => 'Generator::Deletion'
         )
- 
-        # Visit a insertion
-        #
-        # @param [Axiom::Relation::Operation::Insertion] insertion
-        #
-        # @return [self]
-        #
-        # @api private
-        #
-        # def visit_insert_operation(insertion)
-        #   set_attributes Generator::Insertion.new.visit(insertion)
-        # end
+
 
         def set_attributes(relation, generator_klass, ivar_name = :@query)
           if instance_variable_get(ivar_name)

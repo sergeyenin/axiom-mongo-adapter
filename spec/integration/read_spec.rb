@@ -7,13 +7,11 @@ RSpec.configure { |c| c.extend IntegrationSpecHelper }
 # if ENV['TRAVIS'] or ENV['HAS_MONGO']
   describe Adapter::Mongo, 'read' do
 
-    before :all do
+    around(:each) do |ex|
       collection.insert(:firstname => 'John', :lastname => 'Doe')
       collection.insert(:firstname => 'Sue', :lastname => 'Doe')
       collection.insert(:firstname => 'Tray', :lastname => 'Doe')
-    end
-
-    after :all do
+      ex.run
       collection.remove
     end
 
@@ -24,7 +22,6 @@ RSpec.configure { |c| c.extend IntegrationSpecHelper }
         [ 'Sue', 'Doe' ],
         [ 'Tray', 'Doe' ]
       ]
-      # collection.skip(1)
     end
 
     specify 'it allows to receive specific records' do

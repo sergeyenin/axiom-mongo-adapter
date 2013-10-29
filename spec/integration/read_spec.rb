@@ -1,19 +1,12 @@
 require 'spec_helper'
+require 'integration_spec_helper'
 require 'logger'
+
+RSpec.configure { |c| c.extend IntegrationSpecHelper }
 
 # if ENV['TRAVIS'] or ENV['HAS_MONGO']
   describe Adapter::Mongo, 'read' do
-    let(:uri)           { ENV.fetch('MONGO_URI', '127.0.0.1')                                    }
-    let(:logger)        { Logger.new($stdout)                                                    }
-            
-    let(:adapter)       { Adapter::Mongo.new(database)                                           }
-    let(:base_relation) { Relation::Base.new('people', [[:firstname,String],[:lastname,String]]) }
 
-    let(:connection)    { Mongo::Connection.new(uri)                                             }
-                                                                                    
-    let(:relation)      { Adapter::Mongo::Gateway.new(adapter, base_relation)                    }
-    let(:database)      { connection.db('test')                                                  }
-    let(:collection)    { database.collection('people')                                          }
     before :all do
       collection.insert(:firstname => 'John', :lastname => 'Doe')
       collection.insert(:firstname => 'Sue', :lastname => 'Doe')
@@ -45,6 +38,15 @@ require 'logger'
         [ 'John', 'Doe' ],
         [ 'Sue', 'Doe' ],
         [ 'Tray', 'Doe' ]
+      ]
+    end
+
+    specify 'it allows to sort records desc' do
+      data = relation.sort_by{ |x| [x.firstname.desc] }.to_ary
+      data.should == [
+        [ 'Tray', 'Doe' ],
+        [ 'Sue', 'Doe' ],
+        [ 'John', 'Doe' ]
       ]
     end
 

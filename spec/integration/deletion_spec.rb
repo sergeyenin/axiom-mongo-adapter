@@ -1,5 +1,8 @@
 require 'spec_helper'
+require 'integration_spec_helper'
 require 'logger'
+
+RSpec.configure { |c| c.extend IntegrationSpecHelper }
 
 # if ENV['TRAVIS'] or ENV['HAS_MONGO']
   describe Adapter::Mongo, 'delete' do

@@ -1,0 +1,1 @@
+require 'helpers/integration/integration_spec_helper.rb'

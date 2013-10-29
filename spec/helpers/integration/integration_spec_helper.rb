@@ -1,11 +1,10 @@
-require 'spec_helper'
-require 'integration_spec_helper'
-require 'logger'
+module IntegrationSpecHelper
+  
+  def self.extended(base)
+    base.init_base
+  end
 
-RSpec.configure { |c| c.extend IntegrationSpecHelper }
-
-# if ENV['TRAVIS'] or ENV['HAS_MONGO']
-  describe Adapter::Mongo, 'insert' do
+  def init_base
     let(:uri)           { ENV.fetch('MONGO_URI', '127.0.0.1')                                    }
     let(:logger)        { Logger.new($stdout)                                                    }
             
@@ -17,32 +16,6 @@ RSpec.configure { |c| c.extend IntegrationSpecHelper }
     let(:relation)      { Adapter::Mongo::Gateway.new(adapter, base_relation)                    }
     let(:database)      { connection.db('test')                                                  }
     let(:collection)    { database.collection('people')                                          }
-
-    after :all do
-      collection.remove
-    end
-
-    before :all do
-      collection.remove
-    end 
-
-    specify 'it allows to insert new records to empty relation' do
-      relation.insert([[ 'John', 'Doe' ],[ 'Sue', 'Doe' ]])
-      relation.sort.to_ary.should == [       
-        [ 'John', 'Doe' ],
-        [ 'Sue', 'Doe' ]
-      ]
-    end
-
-    specify 'it allows to insert new record to existing relation' do
-      relation.insert([[ 'John', 'Doe' ],[ 'Sue', 'Doe' ]])
-      relation.insert([[ 'Tray', 'Doe' ]])
-      relation.sort.to_ary.should == [
-        [ 'John', 'Doe' ],
-        [ 'Sue', 'Doe' ],
-        [ 'Tray', 'Doe' ]
-      ]
-    end
-
   end
-# end
+
+end                                          

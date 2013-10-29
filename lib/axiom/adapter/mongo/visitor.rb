@@ -51,7 +51,6 @@ module Axiom
             :fields => fields
           }
         end
-
       private
 
         # Initialize visitor
@@ -63,7 +62,6 @@ module Axiom
         # @api private
         #
         def initialize(relation)
-          relation = relation.send(:relation) if relation.is_a? Gateway 
           dispatch(relation)
           @query ||= {}
           @sort  ||= []
@@ -71,21 +69,34 @@ module Axiom
         end
 
         TABLE = Operations.new(
-          Axiom::Relation::Base                       => 'Generator::Base',
-          Axiom::Relation::Operation::Order           => ['Generator::Order', :@sort],
-          Axiom::Relation::Operation::Limit           => ['Generator::Limit', :@limit],
-          Axiom::Relation::Operation::Offset          => ['Generator::Offset', :@skip],
-          Axiom::Relation::Operation::Insertion       => 'Generator::Insertion',
-          Axiom::Algebra::Restriction                 => 'Generator::Restriction',
-          Axiom::Relation::Operation::Deletion        => 'Generator::Deletion'
+          Axiom::Relation::Base                       =>  Generator::Base,
+          Axiom::Relation::Operation::Order           => [Generator::Order, :@sort],
+          Axiom::Relation::Operation::Limit           => [Generator::Limit, :@limit],
+          Axiom::Relation::Operation::Offset          => [Generator::Offset, :@skip],
+          Axiom::Relation::Operation::Insertion       => Generator::Insertion,
+          Axiom::Algebra::Restriction                 => Generator::Restriction,
+          Axiom::Relation::Operation::Deletion        => Generator::Deletion
         )
 
-
-        def set_attributes(relation, generator_klass, ivar_name = :@query)
+        # Initialize Visitor instance attributes
+        #
+        # @param [Relation] relation
+        #   incoming relation
+        #
+        # @param [Generator] generator
+        #   generator class for incoming relation
+        #
+        # @param [Symbol] ivar_name
+        #   instance variable name, in which will be mongo json request
+        # @return [self]
+        #
+        # @api private
+        #
+        def set_attributes(relation, generator, ivar_name = :@query)
           if instance_variable_get(ivar_name)
             raise UnsupportedAlgebraError, "No support for visiting #{operation.class} more than once"
           end
-          generator = eval(generator_klass).new.visit(relation)
+          generator = generator.new.visit(relation)
 
           instance_variable_set(ivar_name, generator.to_hash)
 

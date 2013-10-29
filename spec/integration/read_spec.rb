@@ -14,7 +14,6 @@ require 'logger'
     let(:relation)      { Adapter::Mongo::Gateway.new(adapter, base_relation)                    }
     let(:database)      { connection.db('test')                                                  }
     let(:collection)    { database.collection('people')                                          }
-
     before :all do
       collection.insert(:firstname => 'John', :lastname => 'Doe')
       collection.insert(:firstname => 'Sue', :lastname => 'Doe')

@@ -67,12 +67,6 @@ module Axiom
   end
 end
 
-require 'axiom/adapter/mongo/operations'
-require 'axiom/adapter/mongo/visitor'
-require 'axiom/adapter/mongo/function'
-require 'axiom/adapter/mongo/literal'
-require 'axiom/adapter/mongo/gateway'
-require 'axiom/adapter/mongo/query'
 require 'axiom/adapter/mongo/generator'
 require 'axiom/adapter/mongo/generator/base'
 require 'axiom/adapter/mongo/generator/insertion'
@@ -81,3 +75,9 @@ require 'axiom/adapter/mongo/generator/restriction'
 require 'axiom/adapter/mongo/generator/offset'
 require 'axiom/adapter/mongo/generator/order'
 require 'axiom/adapter/mongo/generator/limit'
+require 'axiom/adapter/mongo/operations'
+require 'axiom/adapter/mongo/visitor'
+require 'axiom/adapter/mongo/function'
+require 'axiom/adapter/mongo/literal'
+require 'axiom/adapter/mongo/gateway'
+require 'axiom/adapter/mongo/query'

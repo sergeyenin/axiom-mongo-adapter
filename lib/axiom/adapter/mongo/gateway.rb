@@ -5,18 +5,7 @@ module Axiom
     class Mongo
       # A relation backed by mongo adapter
       class Gateway < ::Axiom::Relation
-
-        DECORATED_CLASS = superclass
-
-        # Poor man forwardable for now.
-        (DECORATED_CLASS.public_instance_methods(false).map(&:to_s) - %w[ materialize one ]).each do |method|
-          class_eval(<<-RUBY, __FILE__,__LINE__+1)
-            def #{method}(*args, &block)
-              relation.public_send(:#{method}, *args,&block)
-            end
-          RUBY
-        end
-
+        include Axiom::Relation::Proxy
         # Return inspected stub to fight against inspect related errors in spec printouts
         #
         # @return [String]
@@ -27,35 +16,21 @@ module Axiom
         #
         def inspect; 'GATEWAY'; end
 
-        MAP = [
-          Relation::Operation::Order,
-          Relation::Operation::Offset,
-          Relation::Operation::Limit,
-          Relation::Operation::Insertion,
-          Relation::Operation::Deletion,
-          Algebra::Restriction
-        ].each_with_object({}) do |operation, map|
-          operation::Methods.public_instance_methods(false).each do |method|
-            method = method.to_sym
-            map[method]=operation if method != :last
-          end
-        end
+        CHANGING_METHODS = [:insert, :delete]
 
-        CHANGING_METHODS = [:insert, :delete] 
-
+        MAP = Adapter::Mongo.available_modules.inject({}){ |hash, module_name| hash.tap{|hash| module_name::Methods.public_instance_methods(false).each{|method| hash[method] = module_name }}}
         MAP.each_key do |method|
-          class_eval(<<-RUBY, __FILE__,__LINE__+1)
-            def #{method}(*args, &block)
-              unless supported?(:#{method})
-                return super
-              end
+          define_method(method) do |*args, &block|
+            return super unless supported?(method)
 
-              response = @relation.send(:#{method}, *args,&block)
-              result = self.class.new(adapter, response, @operations + [response.class])
-              adapter.execute(response) if CHANGING_METHODS.include?(__method__)
-              result 
+            response = @relation.send(method, *args, &block)
+
+            self.class.new(adapter, response, @operations + [response.class]).tap do |x| 
+              if CHANGING_METHODS.include?(method)
+                adapter.execute(response)
+              end 
             end
-          RUBY
+          end
         end
 
         # The adapter the gateway will use to fetch results
@@ -127,6 +102,7 @@ module Axiom
  
       private
 
+
         # Return if method is supported in this gateway
         #
         # @param [Symbol] method
@@ -149,8 +125,7 @@ module Axiom
           relation = self.relation
 
           return relation if materialized?
-
-          DECORATED_CLASS.new(header, adapter.read(relation))
+          self.class.superclass.new(header, adapter.read(relation))
         end
       end
     end # class Gateway

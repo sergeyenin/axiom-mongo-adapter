@@ -10,6 +10,16 @@ module Axiom
 
       include Adamantium::Flat
 
+      singleton_class.class_eval{ attr_accessor :available_modules }
+
+      self.available_modules = [
+              Relation::Operation::Order,
+              Relation::Operation::Offset,
+              Relation::Operation::Limit,
+              Relation::Operation::Insertion,
+              Relation::Operation::Deletion,
+              Algebra::Restriction          
+      ]
       # Return mongo connection
       #
       # @return [::Mongo::DB]
@@ -63,9 +73,10 @@ module Axiom
       def initialize(database)
         @database = database
       end
-    end
-  end
-end
+
+    end #class Mongo
+  end #module Adapter
+end #module Axiom
 
 require 'axiom/adapter/mongo/generator'
 require 'axiom/adapter/mongo/generator/base'

@@ -51,6 +51,7 @@ module Axiom
             :fields => fields
           }
         end
+
       private
 
         # Initialize visitor
@@ -69,13 +70,10 @@ module Axiom
         end
 
         TABLE = Operations.new(
-          Axiom::Relation::Base                       =>  Generator::Base,
-          Axiom::Relation::Operation::Order           => [Generator::Order, :@sort],
-          Axiom::Relation::Operation::Limit           => [Generator::Limit, :@limit],
-          Axiom::Relation::Operation::Offset          => [Generator::Offset, :@skip],
-          Axiom::Relation::Operation::Insertion       => Generator::Insertion,
-          Axiom::Algebra::Restriction                 => Generator::Restriction,
-          Axiom::Relation::Operation::Deletion        => Generator::Deletion
+          Adapter::Mongo.available_modules.inject({Axiom::Relation::Base => Generator::Base}) do |hash, module_name|
+            class_name = module_name.name.split('::').last
+            hash.tap{ hash[module_name] =  Axiom::Adapter::Mongo::Generator.const_get(class_name) }            
+          end
         )
 
         # Initialize Visitor instance attributes
@@ -92,14 +90,12 @@ module Axiom
         #
         # @api private
         #
-        def set_attributes(relation, generator, ivar_name = :@query)
-          if instance_variable_get(ivar_name)
-            raise UnsupportedAlgebraError, "No support for visiting #{operation.class} more than once"
-          end
+        def set_attributes(generator, relation)
           generator = generator.new.visit(relation)
 
-          instance_variable_set(ivar_name, generator.to_hash)
+          raise UnsupportedAlgebraError, "No support for visiting #{operation.class} more than once" if instance_variable_get(generator.variable_name)
 
+          instance_variable_set(generator.variable_name, generator.to_hash)
           @collection_name = generator.name
           @method_name = generator.method_name
           @fields = generator.fields

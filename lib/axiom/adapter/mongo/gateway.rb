@@ -19,13 +19,13 @@ module Axiom
 
         CHANGING_METHODS = [:insert, :delete]
 
-        MAP = Adapter::Mongo.available_modules.inject({}){ |hash, module_name| hash.tap{|hash| module_name::Methods.public_instance_methods(false).each{|method| hash[method] = module_name }}}
+        MAP = Adapter::Mongo.available_modules.inject({}){ |hash, module_name| hash.tap{ module_name::Methods.public_instance_methods(false).each{ |method| hash[method] = module_name } } }
 
         MAP.each_key do |method|
           define_method(method) do |*args, &block|
             return super unless supported?(method)
             response = @relation.send(method, *args, &block)
-            self.class.new(adapter, response, @operations + [response.class]).tap { |x| adapter.execute(response) if CHANGING_METHODS.include?(method) }
+            self.class.new(adapter, response, @operations + [response.class]).tap{ adapter.execute(response) if CHANGING_METHODS.include?(method) }
           end
         end
 
@@ -38,7 +38,6 @@ module Axiom
 
         attr_reader :adapter
         protected :adapter
-
 
         # Initialize a Gateway
         #

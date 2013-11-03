@@ -59,6 +59,10 @@ module Axiom
             @name = @operand.name
           end
 
+          def set_variable_name
+            @variable_name = "@sort"
+          end
+
         end #Order
       end #Generator
     end #Mongo

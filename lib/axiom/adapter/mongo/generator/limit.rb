@@ -59,6 +59,10 @@ module Axiom
             @name = @operand.operand.name
           end
 
+          def set_variable_name
+            @variable_name = "@limit"
+          end
+
         end #Limit
       end #Generator
     end #Mongo

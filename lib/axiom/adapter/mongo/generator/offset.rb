@@ -59,6 +59,10 @@ module Axiom
             @name = @operand.operand.name
           end
 
+          def set_variable_name
+            @variable_name = "@skip"
+          end
+
         end #Offset
       end #Generator
     end #Mongo

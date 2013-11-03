@@ -28,6 +28,8 @@ module Axiom
         #
         attr_reader :method_name
 
+        attr_reader :variable_name
+
         # Return the axiom relation's predicate(in hash form for mongo)
         #
         # @return [Hash]
@@ -66,6 +68,7 @@ module Axiom
           set_predicate relation
           set_fields relation
           set_name
+          set_variable_name
           self
         end
 
@@ -128,6 +131,10 @@ module Axiom
         #
         def set_name
           @name = @operand.respond_to?(:name) ? @operand.name : ""
+        end
+
+        def set_variable_name
+          @variable_name = "@query"
         end
 
       end #Generator

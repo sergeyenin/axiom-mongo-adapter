@@ -6,6 +6,7 @@ module Axiom
       # A relation backed by mongo adapter
       class Gateway < ::Axiom::Relation
         include Axiom::Relation::Proxy
+
         # Return inspected stub to fight against inspect related errors in spec printouts
         #
         # @return [String]
@@ -19,17 +20,12 @@ module Axiom
         CHANGING_METHODS = [:insert, :delete]
 
         MAP = Adapter::Mongo.available_modules.inject({}){ |hash, module_name| hash.tap{|hash| module_name::Methods.public_instance_methods(false).each{|method| hash[method] = module_name }}}
+
         MAP.each_key do |method|
           define_method(method) do |*args, &block|
             return super unless supported?(method)
-
             response = @relation.send(method, *args, &block)
-
-            self.class.new(adapter, response, @operations + [response.class]).tap do |x| 
-              if CHANGING_METHODS.include?(method)
-                adapter.execute(response)
-              end 
-            end
+            self.class.new(adapter, response, @operations + [response.class]).tap { |x| adapter.execute(response) if CHANGING_METHODS.include?(method) }
           end
         end
 
@@ -39,17 +35,10 @@ module Axiom
         #
         # @api private
         #
+
         attr_reader :adapter
         protected :adapter
 
-        # The relation the gateway will use to generate Query
-        #
-        # @return [Relation]
-        #
-        # @api private
-        #
-        attr_reader :relation
-        protected :relation
 
         # Initialize a Gateway
         #
@@ -99,9 +88,12 @@ module Axiom
         def to_ary
           tuples.map(&:to_ary)
         end
+
+        def to_a
+          tuples.to_a
+        end
  
       private
-
 
         # Return if method is supported in this gateway
         #
@@ -122,8 +114,6 @@ module Axiom
         # @api private
         #
         def tuples
-          relation = self.relation
-
           return relation if materialized?
           self.class.superclass.new(header, adapter.read(relation))
         end

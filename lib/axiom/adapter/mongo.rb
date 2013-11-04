@@ -35,8 +35,10 @@ module Axiom
       #
       # @api public
       #
-      def execute(relation)
-        Query.new(@database, relation).execute
+      def execute(relation, &block)
+        query = Query.new(@database, relation)
+        return to_enum(__method__, relation) if !block_given? and query.visitor.method_name == :find
+        query.tap{|query| query.execute}.each(&block)
       end
  
       # Read tuples from relation
@@ -52,13 +54,6 @@ module Axiom
       #
       # @api private
       #
-      def read(relation, &block)
-        return to_enum(__method__, relation) unless block_given?
-
-        Query.new(@database, relation).each(&block)
-
-        self
-      end
 
     private
 

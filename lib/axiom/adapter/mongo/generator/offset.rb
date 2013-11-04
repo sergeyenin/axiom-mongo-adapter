@@ -12,7 +12,7 @@ module Axiom
           # @api public
           #
           def initialize
-            @method_name = :skip  
+            @method_name = :find  
           end
 
           private

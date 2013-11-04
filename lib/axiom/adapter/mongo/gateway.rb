@@ -72,7 +72,7 @@ module Axiom
         #
         def each
           return to_enum unless block_given?
-          tuples.each { |tuple| yield tuple }
+          tuples.each { |tuple| yield(tuple) }
           self
         end
         
@@ -106,7 +106,7 @@ module Axiom
           !@operations.include?(MAP.fetch(method))
         end
 
-        # Return a list of tuples to iterate over
+      # Return a list of tuples to iterate over
         #
         # @return [#each]
         #
@@ -114,7 +114,7 @@ module Axiom
         #
         def tuples
           return relation if materialized?
-          self.class.superclass.new(header, adapter.read(relation))
+          self.class.superclass.new(header, adapter.execute(relation))
         end
       end
     end # class Gateway

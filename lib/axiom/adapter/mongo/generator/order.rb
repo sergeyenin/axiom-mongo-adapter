@@ -12,7 +12,7 @@ module Axiom
           # @api public
           #
           def initialize
-            @method_name = :sort  
+            @method_name = :find  
           end
 
           private

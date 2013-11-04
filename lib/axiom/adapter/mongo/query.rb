@@ -5,6 +5,8 @@ module Axiom
       class Query
         include Enumerable, Adamantium::Flat
 
+
+        attr_reader :visitor
         # Enumerate tuples
         #
         # @return [self]
@@ -19,9 +21,8 @@ module Axiom
           return to_enum(__method__) unless block_given?
 
           documents.each do |document|
-            yield tuple(document)
+            yield(tuple(document))
           end
-
           self
         end
         

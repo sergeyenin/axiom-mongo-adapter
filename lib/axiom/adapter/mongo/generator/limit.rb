@@ -12,7 +12,7 @@ module Axiom
           # @api public
           #
           def initialize
-            @method_name = :limit  
+            @method_name = :find  
           end
 
           private

@@ -101,7 +101,7 @@ module Axiom
         #
         # @api protected
         #
-        def get_mongo_hash; end
+        def get_mongo_hash; predicate; end
 
         # Interface for set_operands method
         #

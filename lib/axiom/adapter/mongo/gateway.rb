@@ -19,7 +19,7 @@ module Axiom
 
         CHANGING_METHODS = [:insert, :delete]
 
-        MAP = Adapter::Mongo.available_modules.inject({}){ |hash, module_name| hash.tap{ module_name::Methods.public_instance_methods(false).each{ |method| hash[method] = module_name } } }
+        MAP = Adapter::Mongo.available_modules.keys.inject({}){ |hash, module_name| hash.tap{ module_name::Methods.public_instance_methods(false).each{ |method| hash[method] = module_name } } }
 
         MAP.each_key do |method|
           define_method(method) do |*args, &block|

@@ -37,6 +37,21 @@ module Axiom
         #
         attr_reader :fields
 
+        def self.construct_generator(method_name: :find, variable_name: :query, binary: false, code_to_generate: nil, get_name: nil)
+          
+          generator = Class.new(Generator) do
+            define_method(:initialize)        { @method_name = method_name }
+            define_method(:set_predicate)     { |relation| @predicate = code_to_generate.call(relation) if code_to_generate }
+            define_method(:set_operands)      { |relation| binary ? (@left, @right = relation.left, relation.right) : @operand = (relation.operand rescue nil) || relation }
+            define_method(:set_name)          { @name = get_name ? get_name.call(@operand) : (@operand||@left).send(:name) }
+            define_method(:set_variable_name) { @variable_name = "@#{variable_name}" }
+
+            private :set_predicate, :set_operands, :set_name, :set_variable_name
+          end
+
+        end
+        private_class_method :construct_generator
+
         # Return mongo query options
         #
         # @return [Hash]
@@ -69,12 +84,15 @@ module Axiom
 
         end
 
+
+
         TABLE = Operations.new(
-          Adapter::Mongo.available_modules.inject({Axiom::Relation::Base => Generator::Base}) do |hash, module_name|
+          Adapter::Mongo.available_modules.inject({Axiom::Relation::Base => construct_generator(binary: false)}) do |hash, (module_name, attributes)|
             class_name = module_name.name.split('::').last
-            hash.tap{ hash[module_name] =  Axiom::Adapter::Mongo::Generator.const_get(class_name) }            
+            hash.tap{ hash[module_name] =  construct_generator(attributes) }
           end
         )
+
 
         # Initialize Visitor instance attributes
         #

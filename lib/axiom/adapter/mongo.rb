@@ -1,6 +1,6 @@
 require 'axiom'
 require 'mongo'
-
+require 'axiom/adapter/mongo/support/definition'
 module Axiom
   module Adapter
     # An adapter for mongodb
@@ -11,15 +11,86 @@ module Axiom
       include Adamantium::Flat
 
       singleton_class.class_eval{ attr_accessor :available_modules }
+      self.available_modules = {}
 
-      self.available_modules = [
-              Relation::Operation::Order,
-              Relation::Operation::Offset,
-              Relation::Operation::Limit,
-              Relation::Operation::Insertion,
-              Relation::Operation::Deletion,
-              Algebra::Restriction          
-      ]
+      def self.define_modules
+        yield
+      end
+
+      def self.axiom_module(module_name, &block)
+        self.available_modules = self.available_modules.merge({ module_name => Definition.new.call(&block).to_hash })
+      end
+
+
+      define_modules do
+        
+        #define Relation::Operation::Order
+        axiom_module Relation::Operation::Order do 
+          variable_name :sort
+
+          code_to_generate do |order|
+            Literal.sort(order.directions)
+          end
+        end
+        
+        #define Relation::Operation::Offset
+        axiom_module Relation::Operation::Offset do 
+          variable_name :skip
+
+          code_to_generate do |offset|
+            Literal.positive_integer(offset.offset)
+          end
+
+          get_name do |operand|
+            operand.operand.name
+          end
+        end
+        
+        #define Relation::Operation::Limit
+        axiom_module Relation::Operation::Limit do 
+          variable_name :limit
+
+          code_to_generate do |limit|
+            Literal.positive_integer(limit.limit)
+          end
+
+          get_name do |operand|
+            operand.operand.name
+          end
+        end
+        
+        #define Relation::Operation::Insertion
+        axiom_module Relation::Operation::Insertion do 
+          method_name :insert
+          binary :true
+
+          code_to_generate do |insertion|
+            insertion.right.to_a.inject([]) {|res, tuple| res << Hash[tuple.data.map { |attribute, value| [attribute.name, value] }]}
+          end
+
+        end
+        
+        #define Relation::Operation::Deletion
+        axiom_module Relation::Operation::Deletion do 
+          method_name :remove
+          binary :true
+
+          code_to_generate do |deletion|
+            deletion.right.to_a.map{|tuple| Hash[tuple.data.map { |attribute, value| [attribute.name, value] }]}.first
+          end
+
+        end
+        
+        #define Algebra::Restriction
+        axiom_module Algebra::Restriction do 
+          code_to_generate do |restriction|
+            Function.function(restriction.predicate)
+          end
+
+        end
+
+      end
+
       # Return mongo connection
       #
       # @return [::Mongo::DB]
@@ -74,13 +145,6 @@ module Axiom
 end #module Axiom
 
 require 'axiom/adapter/mongo/generator'
-require 'axiom/adapter/mongo/generator/base'
-require 'axiom/adapter/mongo/generator/insertion'
-require 'axiom/adapter/mongo/generator/deletion'
-require 'axiom/adapter/mongo/generator/restriction'
-require 'axiom/adapter/mongo/generator/offset'
-require 'axiom/adapter/mongo/generator/order'
-require 'axiom/adapter/mongo/generator/limit'
 require 'axiom/adapter/mongo/operations'
 require 'axiom/adapter/mongo/visitor'
 require 'axiom/adapter/mongo/function'

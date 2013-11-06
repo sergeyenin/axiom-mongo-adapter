@@ -20,7 +20,7 @@ module Axiom
         def each(&block)
           return to_enum(__method__) unless block_given?
 
-          documents.each do |document|
+          execute.each do |document|
             yield(tuple(document))
           end
           self
@@ -62,15 +62,6 @@ module Axiom
           @visitor.fields.map(&:to_s)
         end
 
-        # Return results enumerator
-        #
-        # @return [Enumerator<Hash>]
-        #
-        # @api private
-        #
-        def documents
-          @collection.find(@visitor.query, @visitor.options)
-        end
 
         # Create array tuple from document
         #
